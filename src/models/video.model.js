@@ -1,0 +1,49 @@
+import mongoose, {mongo, Schema} from "mongoose";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"; // It allows to write aggregation queries
+
+
+const videoSchema = new Schema (
+    {
+        videoFile :{
+            type : String,
+            required : true ,
+        },
+        thumbnail : {
+            type : String,
+            required : true ,
+        },
+        title : {
+            type : String,
+            required : true ,
+        },
+        description : {
+            type : String,
+            required : true ,
+        },
+        duration : {
+            type : Number,
+            required : true ,
+        },
+        views :{
+            type : Number,
+            defualt : 0
+        },
+        isPublished :{
+            type : Boolean,
+            true : true
+        },
+        owner : {
+            type : Schema.Types.ObjectId,
+            ref : "User" // must copy from user model
+        }
+    
+    },
+    {
+        timestamps: true
+    }
+)
+
+videoSchema.plugin(mongooseAggregatePaginate)   // Allows aggregation queries
+export const Video =  mongoose.model("Video", videoSchema)
+
+
