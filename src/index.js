@@ -14,16 +14,13 @@ connectDB()
         console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
     })
 
-<<<<<<< HEAD
-    
-=======
     app.get("/", (req, res) => {
-    res.json({
-        status: "success",
-        message: "VidTube Backend API is running 🚀"
-      });
+        res.json({
+            status: "success",
+            message: "VidTube Backend API is running 🚀"
+          });
     });
->>>>>>> aed844efe5ac288ead643234c9066ee65792e8fe
+
 })
 .catch((err) => {
     console.log("MONGO db connection failed !!! ", err);
