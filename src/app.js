@@ -23,6 +23,9 @@ import subscriptionRouter from "./routes/subscription.routes.js"
 import playlistRouter from "./routes/playlist.routes.js"
 import likesRouter from "./routes/likes.route.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
+import healthCheckRouter from "./routes/healthcheck.routes.js";
+
+app.use("/api/v1/healthcheck", healthCheckRouter);
 // routes declaration
 app.use("/api/v1/users", userRouter)  // api request
 app.use("/api/v1/videos", videoRouter)  // api request
