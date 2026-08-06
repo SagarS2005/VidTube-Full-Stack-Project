@@ -24,7 +24,7 @@ const userSchema = new Schema(
             type : String ,
             required : true,
             index : true,
-            trim : true,   
+            trim : true,
         },
         avatar: {
             type : String , // cloudinary ulr
@@ -63,7 +63,7 @@ const userSchema = new Schema(
     
     
     // pre is middleware and 'save' is middleware hooks
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function () {  // automatically invoke, for .create(), & .save()
     if(!this.isModified("password")) return;
 
     this.password = await bcrypt.hash(this.password, 10);
