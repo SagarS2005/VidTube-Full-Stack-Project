@@ -11,7 +11,7 @@ app.use(cors({      // allowing access
     // Migddleware Configuration
 app.use(express.json({ limit: "16kb" }));    // allowing json files request
 app.use(express.urlencoded({ extended: true, limit : "16kb" }));   // allowing url requests
-app.use(express.static("public"))   // it tells that to store user information on public folder
+app.use(express.static("public"))   // it tells that use public folder to serve static files (images,video,gif etc) . => store user information on public folder
 app.use(cookieParser())
 
 
