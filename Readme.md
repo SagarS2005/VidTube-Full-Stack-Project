@@ -49,6 +49,43 @@ src/
 ├── app.js
 └── index.js
 ```
+## API Endpoints
+### User Routes
+| Method  | Endpoint                          | Description                                     |
+| ------- | --------------------------------- | ----------------------------------------------- |
+| `POST`  | `/api/v1/users/register`          | Register a new user with avatar and cover image |
+| `POST`  | `/api/v1/users/login`             | Log in a user                                   |
+| `POST`  | `/api/v1/users/logout`            | Log out the currently authenticated user        |
+| `POST`  | `/api/v1/users/refresh-token`     | Refresh the user's access token                 |
+| `POST`  | `/api/v1/users/change-password`   | Change the current user's password              |
+| `GET`   | `/api/v1/users/current-user`      | Get the currently authenticated user's details  |
+| `PATCH` | `/api/v1/users/update-account`    | Update the user's account details               |
+| `PATCH` | `/api/v1/users/avatar`            | Update the user's avatar                        |
+| `PATCH` | `/api/v1/users/cover-image`       | Update the user's cover image                   |
+| `GET`   | `/api/v1/users/channel/:username` | Get a user's channel profile by username        |
+| `GET`   | `/api/v1/users/history`           | Get the current user's watch history            |
+
+
+
+### Comment Routes
+
+| Method   | Endpoint                      | Description                  |
+| -------- | ----------------------------- | ---------------------------- |
+| `GET`    | `/api/v1/comments/:videoId`   | Get all comments for a video |
+| `POST`   | `/api/v1/comments/:videoId`   | Add a comment to a video     |
+| `DELETE` | `/api/v1/comments/:commentId` | Delete a comment             |
+| `PATCH`  | `/api/v1/comments/:commentId` | Update a comment             |
+
+### Video Routes
+
+| Method  | Endpoint                          | Description                    |
+| ------- | --------------------------------- | ------------------------------ |
+| `POST`  | `/api/v1/videos/register`       | Register a new user        |
+| `POST`  | `/api/v1/videos/login`          | Log in as a users            |
+| `POST`  | `/api/v1/videos/logout`         | Log out the current users    |
+| `GET`   | `/api/v1/users/current-user`   | Get the current users        |
+| `PATCH` | `/api/v1/users/update-account` | Update student account users |
+| `PATCH` | `/api/v1/users/refresh-token`  | Upload or replace a resume     |
 
 ## 🚀 Getting Started
 
@@ -58,6 +95,7 @@ src/
 git clone <repository-url>
 cd <project-folder>
 ```
+
 
 ### Install dependencies
 
