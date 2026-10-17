@@ -5,10 +5,10 @@ import cors from "cors"
 const app = express();
 
 app.use(cors({      // allowing access
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN.split(","),
     credentials:true
 }))
-    // Migddleware Configuration
+    // Middleware Configuration
 app.use(express.json({ limit: "16kb" }));    // allowing json files request
 app.use(express.urlencoded({ extended: true, limit : "16kb" }));   // allowing url requests
 app.use(express.static("public"))   // it tells that use public folder to serve static files (images,video,gif etc) . => store user information on public folder
