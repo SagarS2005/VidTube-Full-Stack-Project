@@ -8,6 +8,18 @@ const api = axios.create({
   withCredentials: true, // send cookies with every request
 });
 
+// Attach Authorization Bearer token from localStorage to every request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 let refreshing = null;
 
 api.interceptors.response.use(
@@ -26,10 +38,23 @@ api.interceptors.response.use(
       try {
         refreshing ??= api
           .post("/users/refresh-token")
+          .then((res) => {
+            const newToken = res.data?.data?.accessToken;
+            if (newToken) {
+              localStorage.setItem("accessToken", newToken);
+            }
+            return res;
+          })
           .finally(() => (refreshing = null));
-        await refreshing;
+
+        const refreshRes = await refreshing;
+        const newToken = refreshRes?.data?.data?.accessToken;
+        if (newToken) {
+          original.headers.Authorization = `Bearer ${newToken}`;
+        }
         return api(original);
-      } catch {
+      } catch (refreshErr) {
+        localStorage.removeItem("accessToken");
         return Promise.reject(error);
       }
     }

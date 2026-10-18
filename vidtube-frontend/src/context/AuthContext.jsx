@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
       setUser(res.data.data);
       return res.data.data;
     } catch {
+      localStorage.removeItem("accessToken");
       setUser(null);
       return null;
     } finally {
@@ -26,14 +27,20 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const res = await api.post("/users/login", credentials);
-    setUser(res.data.data.user);
-    return res.data.data.user;
+    const loggedUser = res.data?.data?.user;
+    const token = res.data?.data?.accessToken;
+    if (token) {
+      localStorage.setItem("accessToken", token);
+    }
+    setUser(loggedUser);
+    return loggedUser;
   };
 
   const logout = async () => {
     try {
       await api.post("/users/logout");
     } finally {
+      localStorage.removeItem("accessToken");
       setUser(null);
     }
   };
