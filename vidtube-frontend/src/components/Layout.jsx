@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 import { ToastProvider } from "../context/ToastContext";
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 992);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

@@ -1,24 +1,24 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {User} from "../models/user.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { User } from "../models/user.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 import { Like } from "../models/like.model.js"
 import { Video } from "../models/video.model.js"
 import { Comment } from "../models/comment.model.js"
 import { Tweet } from "../models/tweet.model.js"
 
-const getLikedVideos = asyncHandler ( async (req, res) =>{
+const getLikedVideos = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
-    if(!isValidObjectId(userId)){
+    if (!isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid UserId")
     }
 
     const videos = await Like.aggregate([
         {
-            $match:{
-                likedBy : new mongoose.Types.ObjectId(userId),
+            $match: {
+                likedBy: new mongoose.Types.ObjectId(userId),
                 video: { $exists: true, $ne: null }
             }
         },
@@ -26,12 +26,12 @@ const getLikedVideos = asyncHandler ( async (req, res) =>{
             $sort: { createdAt: -1 }
         },
         {
-            $lookup:{
-                from : "videos",
-                localField : "video",
-                foreignField : "_id",
-                as : "video",
-                pipeline :[
+            $lookup: {
+                from: "videos",
+                localField: "video",
+                foreignField: "_id",
+                as: "video",
+                pipeline: [
                     {
                         $lookup: {
                             from: "users",
@@ -67,7 +67,7 @@ const getLikedVideos = asyncHandler ( async (req, res) =>{
         }
     ])
 
-    return res  
+    return res
         .status(200)
         .json(new ApiResponse(200, videos, "Liked videos fetched successfully"))
 })
@@ -111,7 +111,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, { isLiked: true, likesCount }, "Comment liked successfully"))
 })
 
-const toggleVideoLike = asyncHandler ( async (req, res) =>{
+const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const userId = req.user?._id
 
@@ -126,7 +126,7 @@ const toggleVideoLike = asyncHandler ( async (req, res) =>{
     }
 
     const existVideoLike = await Like.findOne({
-        video : videoId,
+        video: videoId,
         likedBy: userId
     })
 
@@ -140,7 +140,7 @@ const toggleVideoLike = asyncHandler ( async (req, res) =>{
     }
 
     await Like.create({
-        video : videoId,
+        video: videoId,
         likedBy: userId
     })
 
@@ -189,7 +189,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, { isLiked: true, likesCount }, "Tweet liked successfully"))
 })
 
-export{
+export {
     getLikedVideos,
     toggleCommentLike,
     toggleVideoLike,

@@ -2658,3 +2658,470 @@ textarea {
   line-height: 1.4;
   margin: 0;
 }
+
+/* ==========================================================================
+   Subscriptions – Tab Row & Person Cards
+   ========================================================================== */
+
+/* ── Tab row ── */
+.sub-tab-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.sub-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+  white-space: nowrap;
+}
+
+.sub-tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+}
+
+.sub-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.sub-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-active);
+  color: var(--text-secondary);
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.sub-tab-btn.active .sub-tab-badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ── Person list ── */
+.sub-people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Individual person card ── */
+.sub-person-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: background 0.18s, border-color 0.18s, transform 0.15s;
+}
+
+.sub-person-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
+}
+
+.sub-person-avatar-link {
+  flex-shrink: 0;
+  display: block;
+}
+
+.sub-person-avatar {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  transition: border-color 0.18s;
+}
+
+.sub-person-card:hover .sub-person-avatar {
+  border-color: var(--accent);
+}
+
+.sub-person-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sub-person-name-link {
+  text-decoration: none;
+}
+
+.sub-person-name {
+  font-weight: 600;
+  font-size: 0.97rem;
+  color: var(--text-primary);
+  transition: color 0.15s;
+}
+
+.sub-person-name-link:hover .sub-person-name {
+  color: var(--accent);
+}
+
+.sub-person-handle {
+  font-size: 0.83rem;
+}
+
+.sub-person-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .sub-tab-btn {
+    padding: 8px 12px;
+    font-size: 0.83rem;
+  }
+
+  .sub-person-card {
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .sub-person-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE OVERRIDES
+   Full-app fixes for phones (≤ 767px) and small screens (≤ 991px)
+   ========================================================================== */
+
+/* ── Navbar ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .top-navbar {
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  /* Hide brand name text, keep icon */
+  .brand-name {
+    display: none;
+  }
+
+  /* Shrink search bar */
+  .navbar-search-form {
+    max-width: none;
+    flex: 1;
+    min-width: 0;
+  }
+  .search-input {
+    font-size: 0.85rem;
+    height: 36px;
+    padding: 0 28px 0 12px;
+  }
+  .search-submit-btn {
+    height: 36px;
+    padding: 0 12px;
+  }
+
+  /* Hide "Create" label, keep + icon only */
+  .btn-upload span {
+    display: none;
+  }
+  .btn-upload {
+    padding: 7px 10px;
+  }
+
+  /* Hide theme toggle in navbar (accessible from user dropdown) */
+  .navbar-right > .theme-toggle-btn {
+    display: none;
+  }
+}
+
+/* ── Channel Page ────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .channel-cover-banner {
+    height: 120px;
+    border-radius: var(--radius-md);
+  }
+
+  .channel-profile-row {
+    gap: 14px;
+  }
+
+  .channel-avatar-main {
+    width: 64px !important;
+    height: 64px !important;
+    margin-top: -20px;
+  }
+
+  .channel-fullname {
+    font-size: 1.15rem;
+  }
+
+  .channel-handle-stats {
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  .channel-actions-group {
+    width: 100%;
+  }
+
+  .channel-actions-group .btn-subscribe,
+  .channel-actions-group .row {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Scrollable tabs */
+  .channel-tabs-row {
+    gap: 0;
+    padding-bottom: 0;
+    scrollbar-width: none;
+  }
+  .channel-tabs-row::-webkit-scrollbar {
+    display: none;
+  }
+  .channel-tab-btn {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .channel-about-card {
+    padding: 16px;
+  }
+}
+
+/* ── Watch Page ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .watch-video-title {
+    font-size: 1.05rem;
+    margin: 12px 0 10px;
+  }
+
+  .watch-action-bar {
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+
+  .watch-creator-group {
+    gap: 10px;
+  }
+
+  .watch-buttons-group {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .watch-buttons-group .btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .creator-name-link {
+    font-size: 0.9rem;
+  }
+
+  .watch-comments-section {
+    margin-top: 20px;
+  }
+
+  .comment-create-form {
+    gap: 10px;
+  }
+}
+
+/* ── Library Pages (History, Subscriptions, etc.) ────────────────────────── */
+@media (max-width: 640px) {
+  .page-heading {
+    font-size: 1.2rem;
+  }
+
+  .header-icon-circle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty-state-card {
+    padding: 32px 20px;
+  }
+}
+
+/* ── Creator Studio ──────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .studio-title {
+    font-size: 1.15rem;
+  }
+
+  .studio-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-card-value {
+    font-size: 1.4rem;
+  }
+
+  /* Studio table – horizontal scroll */
+  .studio-table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .video-cell {
+    min-width: 220px;
+  }
+
+  .table-thumb-link {
+    width: 80px;
+  }
+}
+
+/* ── Settings Page ───────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .settings-card {
+    padding: 16px;
+    border-radius: var(--radius-md);
+  }
+}
+
+/* ── Playlist Detail ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .playlist-title-main {
+    font-size: 1.1rem;
+  }
+
+  .track-thumb-box {
+    width: 80px;
+  }
+
+  .track-title-link {
+    font-size: 0.85rem;
+  }
+}
+
+/* ── Upload Page ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .upload-page {
+    padding: 0;
+  }
+}
+
+/* ── Auth Pages (Login/Register) ─────────────────────────────────────────── */
+@media (max-width: 500px) {
+  .auth-card {
+    margin: 16px;
+    padding: 24px 18px;
+    border-radius: var(--radius-lg);
+  }
+
+  .auth-title {
+    font-size: 1.4rem;
+  }
+}
+
+/* ── Community Page ──────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .community-post-card {
+    padding: 14px;
+  }
+}
+
+/* ── Global small-screen polish ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Prevent any fixed-width element from causing horizontal scroll */
+  .main-viewport {
+    overflow-x: hidden;
+  }
+
+  /* Video grid: 1 column on very small phones */
+  .video-grid {
+    grid-template-columns: 1fr;
+    gap: 16px 0;
+  }
+
+  /* Playlist grid: 2-col on phones, 1-col on tiny screens */
+  .playlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+  }
+
+  /* Dropdown stays within viewport */
+  .user-dropdown-menu {
+    width: 220px;
+    right: 0;
+  }
+
+  /* Scrollable tab bars don't show scrollbar on mobile */
+  .sub-tab-row {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sub-tab-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Better touch targets */
+  .btn-sm {
+    padding: 8px 14px;
+  }
+
+  .dropdown-item {
+    padding: 11px 16px;
+  }
+}
+
+/* Tiny phones (≤ 380px) */
+@media (max-width: 380px) {
+  .top-navbar {
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .brand-badge {
+    width: 28px;
+    height: 28px;
+  }
+
+  .search-input {
+    font-size: 0.8rem;
+  }
+
+  .channel-tab-btn {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+}

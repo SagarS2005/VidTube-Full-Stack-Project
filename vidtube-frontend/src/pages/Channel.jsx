@@ -6,12 +6,12 @@ import {
   ListVideo,
   MessageSquare,
   Info,
-  Calendar,
   Mail,
   Edit3,
   LayoutDashboard,
   Check,
-  Loader2
+  Loader2,
+  UserPlus,
 } from "lucide-react";
 import api from "../api/axios";
 import getErrorMessage from "../api/getErrorMessage";
@@ -31,6 +31,9 @@ export default function Channel() {
   const [videos, setVideos] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [tweets, setTweets] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
+  const [loadingSubscribers, setLoadingSubscribers] = useState(false);
+  const [subscribersFetched, setSubscribersFetched] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [subscribing, setSubscribing] = useState(false);
@@ -74,6 +77,20 @@ export default function Channel() {
       ignore = true;
     };
   }, [username]);
+
+  // Fetch channel subscribers lazily when the tab is opened
+  useEffect(() => {
+    if (activeTab !== "subscribers" || subscribersFetched || !channel?._id) return;
+    setLoadingSubscribers(true);
+    api
+      .get(`/subscriptions/u/${channel._id}`)
+      .then((res) => {
+        setSubscribers(res.data.data || []);
+        setSubscribersFetched(true);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingSubscribers(false));
+  }, [activeTab, subscribersFetched, channel?._id]);
 
   const isOwner = user?._id && channel?._id && user._id === channel._id;
 
@@ -205,6 +222,15 @@ export default function Channel() {
             <MessageSquare size={16} /> Community ({tweets.length})
           </button>
           <button
+            className={`channel-tab-btn ${activeTab === "subscribers" ? "active" : ""}`}
+            onClick={() => setActiveTab("subscribers")}
+          >
+            <UserPlus size={16} /> Subscribers
+            {subscribersFetched && (
+              <span style={{ marginLeft: 4, opacity: 0.7 }}>({subscribers.length})</span>
+            )}
+          </button>
+          <button
             className={`channel-tab-btn ${activeTab === "about" ? "active" : ""}`}
             onClick={() => setActiveTab("about")}
           >
@@ -287,6 +313,47 @@ export default function Channel() {
                   <p className="community-post-content">{tweet.content}</p>
                 </div>
               ))}
+            </div>
+          )
+        )}
+
+        {activeTab === "subscribers" && (
+          loadingSubscribers ? (
+            <div className="center-loader" style={{ minHeight: 260 }}>
+              <Loader2 size={30} className="spinner text-accent" />
+              <p className="muted">Loading subscribers…</p>
+            </div>
+          ) : subscribers.length === 0 ? (
+            <div className="empty-state-card">
+              <Users2 size={40} className="muted" />
+              <h4>No subscribers yet</h4>
+              <p className="muted">Be the first to subscribe to this channel!</p>
+            </div>
+          ) : (
+            <div className="sub-people-list">
+              {subscribers.map((item) => {
+                const s = item.subscriberDetails || item;
+                if (!s?._id) return null;
+                const sAvatar =
+                  s.avatar ||
+                  `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(s.username || "user")}`;
+                return (
+                  <div key={s._id} className="sub-person-card">
+                    <a href={`/channel/${s.username}`} className="sub-person-avatar-link">
+                      <img src={sAvatar} alt={s.username} className="avatar avatar-xl sub-person-avatar" />
+                    </a>
+                    <div className="sub-person-info">
+                      <a href={`/channel/${s.username}`} className="sub-person-name-link">
+                        <span className="sub-person-name">{s.fullName || s.username}</span>
+                      </a>
+                      <span className="sub-person-handle muted">@{s.username}</span>
+                    </div>
+                    <div className="sub-person-actions">
+                      <a href={`/channel/${s.username}`} className="btn btn-ghost btn-sm">View</a>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )
         )}

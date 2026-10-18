@@ -1,39 +1,39 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Video} from "../models/video.model.js"
-import {User} from "../models/user.model.js"
-import {Like} from "../models/like.model.js"
-import {Subscription} from "../models/subsciption.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { Video } from "../models/video.model.js"
+import { User } from "../models/user.model.js"
+import { Like } from "../models/like.model.js"
+import { Subscription } from "../models/subsciption.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
-    // take reference from getUserProfile from user controller
+// take reference from getUserProfile from user controller
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    const pipeline=[]
+    const pipeline = []
 
     // 1. Search by title/description if a query string is provided
-    if(query){
+    if (query) {
         pipeline.push({
-            $match :{
-                $or :[
-                    {title : {$regex : query, $options :"i" } },
-                    {description: { $regex : query, $options : "i"}}
+            $match: {
+                $or: [
+                    { title: { $regex: query, $options: "i" } },
+                    { description: { $regex: query, $options: "i" } }
                 ]
             }
         })
     }
 
     // 2. Filter by a specific user's videos, if userId is provided
-    if(userId){
-        if(!isValidObjectId(userId)){
+    if (userId) {
+        if (!isValidObjectId(userId)) {
             throw new ApiError(400, "Invalid UserId")
         }
 
         pipeline.push({
-            $match : {
-                owner : new mongoose.Types.ObjectId(userId)
+            $match: {
+                owner: new mongoose.Types.ObjectId(userId)
                 /*userId is string coming from param(req) , .ObjectId(userId) convert it into objectId Type */
             }
         })
@@ -43,32 +43,32 @@ const getAllVideos = asyncHandler(async (req, res) => {
     pipeline.push({ $match: { isPublished: true } })
 
     // 4. Sorting
-    if(sortBy && sortType){
+    if (sortBy && sortType) {
         pipeline.push({
-            $sort :{
-                [sortBy]:sortType === "asc" ? 1 : -1
+            $sort: {
+                [sortBy]: sortType === "asc" ? 1 : -1
             }
         })
     }
-    else{
-        pipeline.push({ $sort :{createdAt : -1}})   // default : newest first
-    }   
+    else {
+        pipeline.push({ $sort: { createdAt: -1 } })   // default : newest first
+    }
 
-    
+
     //  5. Join owner details (so frontend gets uploader info, not just an ID)
     pipeline.push(
         {
-            $lookup :{
-                from : "users" , // user model will be plural on database
-                localField : "owner",
-                foreignField : "_id",
-                as : "ownerDetails",
-                pipeline:[
+            $lookup: {
+                from: "users", // user model will be plural on database
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerDetails",
+                pipeline: [
                     {
-                        $project :{
-                            username:1,
-                            fullName:1,
-                            avatar:1
+                        $project: {
+                            username: 1,
+                            fullName: 1,
+                            avatar: 1
                         }
                     }
                 ]
@@ -76,7 +76,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                ownerDetails :  {$first : "$ownerDetails"}   
+                ownerDetails: { $first: "$ownerDetails" }
             }
         }
     )
@@ -84,8 +84,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const videoAggregate = Video.aggregate(pipeline)
 
     const options = {
-        page : parseInt(page, 10),
-        limit : parseInt(limit, 10)
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10)
     }
     const videos = await Video.aggregatePaginate(videoAggregate, options)
 
@@ -94,12 +94,12 @@ const getAllVideos = asyncHandler(async (req, res) => {
     */
     return res
         .status(200)
-        .json(new ApiResponse(200, videos, "Videos Fetched Successfully" ))
+        .json(new ApiResponse(200, videos, "Videos Fetched Successfully"))
 })
 
 const publishAVideo = asyncHandler(async (req, res) => { // user must be loggedIn means use middleware veriryJWT is used 
-    let { title, description} = req.body
-     // console.log(req.body)
+    let { title, description } = req.body
+    // console.log(req.body)
     // console.log(req.files)
 
     title = title?.trim()   // we can use trim function directly in Video Model
@@ -112,12 +112,12 @@ const publishAVideo = asyncHandler(async (req, res) => { // user must be loggedI
     // TODO: get video, upload to cloudinary, create video
     const videoPath = req.files?.videoFile?.[0]?.path;          // console.log(videoPath)
     const thumbnailPath = req.files?.thumbnail?.[0]?.path;
-    
+
     const videoFile = await uploadOnCloudinary(videoPath, "VidTube/videos")     // filepath, folderPath for cloudinary
     const thumbnail = await uploadOnCloudinary(thumbnailPath, "VidTube/thumbnails") // filepath, location
 
-    if(!videoFile || !thumbnail){
-        throw new ApiError(400,"video and thumbnail both are required")
+    if (!videoFile || !thumbnail) {
+        throw new ApiError(400, "video and thumbnail both are required")
     }
 
     const video = await Video.create({
@@ -130,19 +130,19 @@ const publishAVideo = asyncHandler(async (req, res) => { // user must be loggedI
     })
 
     return res
-    .status(200)
-    .json(new ApiResponse(201, video, "Video Uploaded Successfully")
-    )
+        .status(200)
+        .json(new ApiResponse(201, video, "Video Uploaded Successfully")
+        )
 
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    
+
     if (!isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid video ID");
     }
-    
+
     // Increment view count
     const video = await Video.findByIdAndUpdate(
         videoId,
@@ -265,18 +265,18 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    
-  
+
+
     if (!isValidObjectId(videoId)) {    //returns true (if it is a well-formed ID)
         throw new ApiError(400, "Invalid video ID")
     }
 
     const video = await Video.findById(videoId);
-    if(!video){
+    if (!video) {
         throw new ApiError(401, "Video not found")
     }
 
-    if(video.owner._id.toString() != req.user._id.toString()){
+    if (video.owner._id.toString() != req.user._id.toString()) {
         throw new ApiError(403, "Unauthorized User")
     }
 
