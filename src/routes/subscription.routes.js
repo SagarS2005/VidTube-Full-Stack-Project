@@ -12,8 +12,11 @@ router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 router
     .route("/subscribed-channels")
     .get(getSubscribedChannels)
-    
 
-router.route("/u/:channelId").get(getChannelSubscribers).post(toggleSubscription);;
+router
+    .route("/channels")
+    .get(getSubscribedChannels)
+
+router.route("/u/:channelId").get(getChannelSubscribers).post(toggleSubscription);
 
 export default router

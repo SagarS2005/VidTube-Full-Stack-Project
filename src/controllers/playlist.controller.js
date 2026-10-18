@@ -1,10 +1,12 @@
 import mongoose, {isValidObjectId} from "mongoose"
 import {User} from "../models/user.model.js"
+import {Video} from "../models/video.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import { PlayList } from "../models/playlist.model.js"
 
+const Playlist = PlayList;
 
 const createPlaylist = asyncHandler(async (req, res) => {
     const userId = req.user?._id
@@ -15,7 +17,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     }
 
     name = name?.trim()
-    description = description?.trim()
+    description = description?.trim() || ""
 
     if (!name) {
         throw new ApiError(400, "Playlist name is required")
@@ -38,31 +40,28 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler (async (req, res) =>{
     const {playlistId} = req.params;
-    const userId = req.user._id;
     
     if(!isValidObjectId(playlistId)){
         throw new ApiError(400, "Invalid Playlist Id")
     }
     
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized request")
-    }   
+    const playlist = await Playlist.findById(playlistId)
+        .populate({
+            path: "videos",
+            populate: {
+                path: "owner",
+                select: "username fullName avatar"
+            }
+        })
+        .populate("owner", "username fullName avatar");
 
-    
-    const playlList = await PlayList.findById(playlistId);
-
-    if(!playlList){
-        throw new ApiError(404, "PlayList Not Found")
+    if(!playlist){
+        throw new ApiError(404, "Playlist Not Found")
     }
-
-    if(userId.toString() != playlList.owner.toString()){
-        throw new ApiError(401, "Unauthorized request")
-    }
-
     
     return res
         .status(200)
-        .json(200, playlList, "Playlist Fetched Successfully")
+        .json(new ApiResponse(200, playlist, "Playlist Fetched Successfully"))
 })
 
 const deletePlaylist = asyncHandler (async (req, res) =>{
@@ -76,21 +75,20 @@ const deletePlaylist = asyncHandler (async (req, res) =>{
         throw new ApiError(401, "Unauthorized Access")
     }
 
-    const playlList = await PlayList.findById(playlistId);
+    const playlist = await Playlist.findById(playlistId);
 
-    if(!playlList){
-        throw new ApiError(404, "PlayList Not Found")
+    if(!playlist){
+        throw new ApiError(404, "Playlist Not Found")
     }
 
-    if(playlList.owner.toString() != userId.toString()){
+    if(playlist.owner.toString() !== userId.toString()){
         throw new ApiError(403, "Unauthorized request")
-
     }
 
-    await PlayList.findByIdAndDelete(playlistId)
+    await Playlist.findByIdAndDelete(playlistId)
     return res
         .status(200)
-        .json(200, {}, "Playlist Removed Successfully")
+        .json(new ApiResponse(200, {}, "Playlist Removed Successfully"))
 })
 
 const updatePlaylist = asyncHandler(async (req, res) => {
@@ -144,6 +142,11 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     }
 
     const playlists = await Playlist.find({ owner: userId })
+        .populate({
+            path: "videos",
+            select: "thumbnail title duration views"
+        })
+        .sort({ updatedAt: -1 });
 
     return res
         .status(200)
@@ -223,8 +226,6 @@ const removeVideoFromPlaylist = asyncHandler (async (req, res) =>{
         .status(200)
         .json(new ApiResponse(200, updatedPlaylist, "Video removed from playlist successfully"))
 })
-
-
 
 export{
     addVideoToPlaylist,

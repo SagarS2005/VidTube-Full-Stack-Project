@@ -1,8 +1,13 @@
-# VidTube Backend API
+# VidTube Full Stack Platform
 
-A production-ready backend REST API for a video-sharing platform built with **Node.js**, **Express.js**, and **MongoDB**. The project implements secure authentication, media uploads, user management, playlists, subscriptions, likes, comments, tweets, and dashboard analytics while following a modular and scalable architecture.
+A production-ready video-sharing platform and creator studio built with a **Node.js, Express.js & MongoDB** backend and a bespoke, human-designed **Vanilla HTML5, CSS3 & ES6 JavaScript** frontend. The frontend features a warm obsidian cinema aesthetic with crimson studio accents, avoiding generic AI-generated templates.
 
 ## ✨ Features
+
+* **Bespoke Creator Frontend**: Fast, responsive Single Page Application (SPA) with video playback, search, category chips, liked videos, watch history, playlists, and creator studio.
+* **Human-Centric Visual Design**: Warm charcoal/obsidian surfaces, cinematic crimson accents, Plus Jakarta Sans typography, and subtle micro-interactions.
+* **Full Backend API Integration**: Native interface to all VidTube REST endpoints with automatic Bearer token and cookie credentials.
+* **Offline / Seed Fallback**: Fully interactive out of the box with realistic videos and creator metrics even when the database is empty.
 
 * JWT Authentication with Access & Refresh Token Rotation
 * Secure HTTP-only Cookie-Based Authentication

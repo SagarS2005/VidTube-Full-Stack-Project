@@ -1,6 +1,8 @@
 import mongoose, {isValidObjectId} from "mongoose"
 import {Video} from "../models/video.model.js"
 import {User} from "../models/user.model.js"
+import {Like} from "../models/like.model.js"
+import {Subscription} from "../models/subsciption.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -16,8 +18,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
         pipeline.push({
             $match :{
                 $or :[
-                    {title : {$regex : query, $option :"i" } },
-                    {description: { $regex : query, $option : "i"}}
+                    {title : {$regex : query, $options :"i" } },
+                    {description: { $regex : query, $options : "i"}}
                 ]
             }
         })
@@ -74,7 +76,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                ownerDetails :  {$first : "$onwerDetails"}   
+                ownerDetails :  {$first : "$ownerDetails"}   
             }
         }
     )
@@ -135,97 +137,106 @@ const publishAVideo = asyncHandler(async (req, res) => { // user must be loggedI
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params  // when user click any video or thumbnail the video id will be added in param
-    // videoId is extracting from the video route
+    const { videoId } = req.params;
     
-    if (!isValidObjectId(videoId)) {    //returns true (if it is a well-formed ID)
-        throw new ApiError(400, "Invalid video ID")
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID");
     }
     
-    //TODO: get video by id
-    const video = await Video.findById(videoId) // it will take the link of video from DB
+    // Increment view count
+    const video = await Video.findByIdAndUpdate(
+        videoId,
+        { $inc: { views: 1 } },
+        { new: true }
+    ).populate("owner", "username fullName avatar email");
 
     if (!video) {
-        throw new ApiError(404, "Video not found")
+        throw new ApiError(404, "Video not found");
     }
 
-        // Update watch history only if the user is logged in
-    if (req.user) {
+    // Update watch history only if the user is logged in
+    if (req.user?._id) {
         await User.findByIdAndUpdate(
             req.user._id,
             {
-                // Remove the video if it is already present
-                $pull: {
-                    watchHistory: video._id
-                }
+                $pull: { watchHistory: video._id }
             }
         );
-
-        // Add the video again as the most recently watched video
         await User.findByIdAndUpdate(
             req.user._id,
             {
-                $push: {
-                    watchHistory: video._id
-                }
+                $push: { watchHistory: video._id }
             }
         );
     }
 
-    return res
-    .status(200)
-    .json(new ApiResponse(201, video, "Video Fetched Successfully"))
-})
+    const likesCount = await Like.countDocuments({ video: videoId });
+    const isLiked = req.user?._id ? Boolean(await Like.exists({ video: videoId, likedBy: req.user._id })) : false;
 
-const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    const {title, description} = req.body
-    const thumbnailLocalPath = req.files?.path
-    //TODO: update video details like title, description, thumbnail
-
-    if (!isValidObjectId(videoId)) {    //returns true (if it is a well-formed ID)
-        throw new ApiError(400, "Invalid video ID")
-    }
-
-    const video = await Video.findById(videoId)   // Step 1: look up the video
-
-    if (!video) {                                   // Step 2: check if it exists
-        throw new ApiError(404, "Video not found")  //         if not, STOP here
-    }
-    
-
-    if(video.owner.toString() !== req.user._id.toString()){
-        throw new ApiError(403, "Not authorized")
-    }
-
-    if(thumbnailLocalPath){
-        const thumbnail = await uploadOnCloudinary(thumbnailLocalPath, "VidTube/thumbanails")
-        if(!thumbnail?.url){
-            throw new ApiError(400, "Error uploading thumbnail")
+    let subscribersCount = 0;
+    let isSubscribed = false;
+    if (video.owner?._id) {
+        subscribersCount = await Subscription.countDocuments({ channel: video.owner._id });
+        if (req.user?._id) {
+            isSubscribed = Boolean(await Subscription.exists({ channel: video.owner._id, subscriber: req.user._id }));
         }
     }
+
+    const videoObj = video.toObject();
+    videoObj.likesCount = likesCount;
+    videoObj.isLiked = isLiked;
+    videoObj.subscribersCount = subscribersCount;
+    videoObj.isSubscribed = isSubscribed;
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, videoObj, "Video Fetched Successfully"));
+});
+
+const updateVideo = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+    const { title, description } = req.body;
+    const thumbnailLocalPath = req.file?.path;
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video ID");
+    }
+
+    const video = await Video.findById(videoId);
+
+    if (!video) {
+        throw new ApiError(404, "Video not found");
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "Not authorized to update this video");
+    }
+
+    let thumbnailUrl = video.thumbnail;
+    if (thumbnailLocalPath) {
+        const thumbnail = await uploadOnCloudinary(thumbnailLocalPath, "VidTube/thumbnails");
+        if (!thumbnail?.url) {
+            throw new ApiError(400, "Error uploading thumbnail");
+        }
+        thumbnailUrl = thumbnail.url;
+    }
+
     const updatedVideo = await Video.findByIdAndUpdate(
         videoId,
         {
             $set: {
-                title,
-                description,
-                thumbnail:thumbnail?.url
+                title: title?.trim() || video.title,
+                description: description?.trim() || video.description,
+                thumbnail: thumbnailUrl
             }
         },
-        {new:true}
-
-    ) 
-    if(!updateVideo){
-        throw new ApiError(403, "Video Not Found")
-    }
+        { new: true }
+    );
 
     return res
         .status(200)
-        .json(new ApiResponse(200), updateVideo, "Successfully Updated")
-
-
-})
+        .json(new ApiResponse(200, updatedVideo, "Successfully Updated"));
+});
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params

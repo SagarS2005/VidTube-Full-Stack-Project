@@ -128,7 +128,8 @@ const loginUser = asyncHandler(async (req,res) => {
 
     const options = {   // for the cookies
         httpOnly : true,
-        secure : true
+        secure : process.env.NODE_ENV === "production",
+        sameSite: "lax"
     } 
     
     // send cookies
@@ -164,7 +165,8 @@ const logOutUser = asyncHandler( async (req, res) =>{       // here request will
 
         const options = {   // for the cookies
         httpOnly : true,
-        secure : true
+        secure : process.env.NODE_ENV === "production",
+        sameSite: "lax"
         } 
 
         return res
@@ -199,7 +201,8 @@ const refresAccessToken = asyncHandler( async (req, res) =>{
         // since accessToken time expired means genereting new tokens
         const options = {
             httpOnly : true,
-            secure : true
+            secure : process.env.NODE_ENV === "production",
+            sameSite: "lax"
         }
     
         const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
@@ -263,7 +266,7 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-        // Ignore the currently logged-in User while checking for duplicate emails.    const existingStudent = 
+    const normalizedEmail = email.toLowerCase().trim();
     const existingUser = await User.findOne(
             {
                 email: normalizedEmail,
@@ -396,7 +399,7 @@ const updateCoverImage = asyncHandler ( async (req, res) => {
 
 
 const getUserChannelProfile = asyncHandler ( async (req, res) => {
-   const {username} = req.param
+   const {username} = req.params
 
    if(!username?.trim()) {
     throw new ApiError(400, "username is missing")
@@ -421,12 +424,15 @@ const getUserChannelProfile = asyncHandler ( async (req, res) => {
             $lookup :{
                 from :"subscriptions",
                 localField: "_id",
-                foreignField:"subscribe",
+                foreignField:"subscriber",
                 as: "subscribedTo"
             }
         },
         {
             $addFields:{
+                subscribersCount:{
+                    $size :"$subscribers"
+                },
                 subcribersCount:{
                     $size :"$subscribers"
                 },
@@ -435,7 +441,7 @@ const getUserChannelProfile = asyncHandler ( async (req, res) => {
                 },
                 isSubscribed:{
                     $cond:{
-                        if :{$in: [req.user?._id, "$subsribers.subscriber"]},
+                        if : req.user?._id ? {$in: [new mongoose.Types.ObjectId(req.user._id), "$subscribers.subscriber"]} : false,
                         then:true,
                         else:false
                     }
@@ -446,8 +452,10 @@ const getUserChannelProfile = asyncHandler ( async (req, res) => {
             $project:{      // select value to project
                 fullName:1, 
                 username:1, // flag 1 indicate this value to show
+                subscribersCount:1,
                 subcribersCount:1,
                 channelsSubscribedToCount:1,
+                isSubscribed:1,
                 avatar:1,
                 coverImage:1,
                 email :1
@@ -513,7 +521,7 @@ const getWatchHistory = asyncHandler (async (req, res) => {
     return res
     .status(200)
     .json(
-        new ApiResponse(200, user[0].watchHistory, "Watch History Fetched Successfully")
+        new ApiResponse(200, user[0]?.watchHistory || [], "Watch History Fetched Successfully")
     )
 })
 

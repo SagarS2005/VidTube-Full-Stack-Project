@@ -7,12 +7,12 @@ import { User } from "../models/user.model.js";
 
 export const verifyJWT = asyncHandler( async (req, res, next) =>{
     try {
-        // we can access , refresh token and access tokens both but refresh tokes stored in db that's why it is costly, therefore we use access token for cheap rate
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer","")    // since User is already login means they have token in their cookies
+        const authHeader = req.header("Authorization");
+        const token = req.cookies?.accessToken || (authHeader ? authHeader.replace(/^Bearer\s+/i, "").trim() : null);
         // cookies is middleware declare in app.js (app.use(cookie-parser()))
     
         if (!token){
-            throw new ApiError(404, "Unauthorized Request")
+            throw new ApiError(401, "Unauthorized Request")
         }
     
         const decodeToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
@@ -26,6 +26,26 @@ export const verifyJWT = asyncHandler( async (req, res, next) =>{
         req.user = user;
         next()  // call next function(or middleware), now control will go to the logOutUser controller
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invlaid Access Token")
+        throw new ApiError(401, error?.message || "Invalid Access Token")
     }
 })
+
+export const optionalVerifyJWT = asyncHandler(async (req, res, next) => {
+    try {
+        const authHeader = req.header("Authorization");
+        const token = req.cookies?.accessToken || (authHeader ? authHeader.replace(/^Bearer\s+/i, "").trim() : null);
+
+        if (!token) {
+            req.user = null;
+            return next();
+        }
+
+        const decodeToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const user = await User.findById(decodeToken?._id).select("-password -refreshToken");
+        req.user = user || null;
+        next();
+    } catch {
+        req.user = null;
+        next();
+    }
+});

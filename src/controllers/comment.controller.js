@@ -37,9 +37,11 @@ const addComment = asyncHandler( async (req, res) => {
         owner : userId
     })
 
+    const populatedComment = await Comment.findById(addedComment._id).populate("owner", "username fullName avatar");
+
     return res  
         .status(200)
-        .json(new ApiResponse (200, addedComment, "Comment Added"))
+        .json(new ApiResponse (200, populatedComment || addedComment, "Comment Added"))
 
     
 })
@@ -96,7 +98,9 @@ const getVideoComments = asyncHandler( async (req, res) => {
                 video: new mongoose.Types.ObjectId(videoId)
             }   // now commnet has only videdId's comment
         },
-
+        {
+            $sort: { createdAt: -1 }
+        },
         {
             $lookup :{      // here we try to access users(commenters) information for the frontend
                 from :"users",
